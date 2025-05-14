@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Presupuesto Mensual</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f7f9fc;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .dashboard {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f1f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .dashboard-item {
+            text-align: center;
+        }
+        .dashboard-value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .event-card {
+            background-color: white;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .event-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .expense-item:last-child {
+            border-bottom: none;
+        }
+        .expense-category {
+            font-weight: bold;
+        }
+        .savings-goal {
+            background-color: #e8f7f2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #27ae60;
+        }
+        .game-over {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8d7da;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        .success-message {
+            text-align: center;
+            padding: 20px;
+            background-color: #d4edda;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #3498db;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s;
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            line-height: 20px;
+        }
+        #expenses-section {
+            margin-top: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .options {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+        .option-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            width: 45%;
+        }
+        .option-button:hover {
+            background-color: #2980b9;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simulador de Presupuesto Mensual</h1>
+        
+        <div id="start-screen">
+            <p>Bienvenido al simulador de presupuesto mensual. Tu objetivo es administrar tu dinero sabiamente para terminar el mes con saldo positivo y alcanzar tu meta de ahorro.</p>
+            <p>Reglas:</p>
+            <ul>
+                <li>Empezarás con un ingreso mensual de $2,000</li>
+                <li>Debes gestionar tus gastos fijos y eventos inesperados</li>
+                <li>El mes tiene 30 días, cada avance representa un día</li>
+                <li>Tu objetivo es terminar con saldo positivo y ahorrar al menos $300</li>
+            </ul>
+            <button id="start-game">Comenzar Juego</button>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <div class="dashboard">
+                <div class="dashboard-item">
+                    <div>Saldo Actual</div>
+                    <div class="dashboard-value" id="current-balance">$2,000</div>
+                </div>
+                <div class="dashboard-item">
+                    <div>Día del Mes</div>
+                    <div class="dashboard-value" id="current-day">1/30</div>
+                </div>
+                <div class="dashboard-item">
+                    <div>Ahorro Actual</div>
+                    <div class="dashboard-value" id="current-savings">$0</div>
+                </div>
+            </div>
+
+            <div class="savings-goal">
+                <div>Objetivo de Ahorro: $300</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="savings-progress">0%</div>
+                </div>
+            </div>
+
+            <div id="fixed-expenses-screen">
+                <h2>Gastos Fijos Mensuales</h2>
+                <p>Antes de empezar el mes, debes decidir cuánto destinarás a cada categoría:</p>
+                
+                <div id="expenses-section">
+                    <div class="expense-item">
+                        <div class="expense-category">Alquiler:</div>
+                        <select id="rent-expense">
+                            <option value="600">Apartamento básico - $600</option>
+                            <option value="800">Apartamento estándar - $800</option>
+                            <option value="1000">Apartamento de lujo - $1000</option>
+                        </select>
+                    </div>
+                    
+                    <div class="expense-item">
+                        <div class="expense-category">Alimentación:</div>
+                        <select id="food-expense">
+                            <option value="200">Básica - $200</option>
+                            <option value="350">Estándar - $350</option>
+                            <option value="500">Premium - $500</option>
+                        </select>
+                    </div>
+                    
+                    <div class="expense-item">
+                        <div class="expense-category">Transporte:</div>
+                        <select id="transport-expense">
+                            <option value="100">Transporte público - $100</option>
+                            <option value="150">Combinado - $150</option>
+                            <option value="250">Vehículo propio - $250</option>
+                        </select>
+                    </div>
+                    
+                    <div class="expense-item">
+                        <div class="expense-category">Entretenimiento:</div>
+                        <select id="entertainment-expense">
+                            <option value="50">Mínimo - $50</option>
+                            <option value="150">Moderado - $150</option>
+                            <option value="300">Abundante - $300</option>
+                        </select>
+                    </div>
+                    
+                    <div class="expense-item">
+                        <div class="expense-category">Ahorro mensual:</div>
+                        <select id="savings-expense">
+                            <option value="100">Mínimo - $100</option>
+                            <option value="200">Moderado - $200</option>
+                            <option value="400">Agresivo - $400</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="expense-item">
+                    <div class="expense-category">Total Gastos:</div>
+                    <div id="total-expenses">$1000</div>
+                </div>
+                <div class="expense-item">
+                    <div class="expense-category">Saldo Restante:</div>
+                    <div id="remaining-balance">$1000</div>
+                </div>
+                
+                <button id="confirm-expenses">Confirmar Gastos</button>
+            </div>
+
+            <div id="event-screen" class="hidden">
+                <div class="event-card">
+                    <div class="event-title" id="event-title">Evento del día</div>
+                    <p id="event-description">Descripción del evento</p>
+                    <div id="event-options" class="options">
+                        <button class="option-button" id="option1">Opción 1</button>
+                        <button class="option-button" id="option2">Opción 2</button>
+                    </div>
+                </div>
+                <button id="next-day" class="hidden">Siguiente Día</button>
+            </div>
+
+            <div class="game-over" id="game-over">
+                <h2>¡Has quedado sin dinero!</h2>
+                <p>No has podido completar el mes con éxito. La gestión financiera es difícil, ¡pero puedes volver a intentarlo!</p>
+                <button id="restart-game">Reiniciar Juego</button>
+            </div>
+
+            <div class="success-message" id="success-message">
+                <h2>¡Felicidades!</h2>
+                <p id="success-details">Has completado el mes con éxito. Terminaste con un saldo de $X y ahorraste $Y.</p>
+                <div id="goal-achieved" class="hidden">
+                    <p>¡Has alcanzado tu objetivo de ahorro de $300!</p>
+                </div>
+                <div id="goal-not-achieved" class="hidden">
+                    <p>No alcanzaste tu objetivo de ahorro de $300, pero aún así terminaste el mes con saldo positivo.</p>
+                </div>
+                <button id="restart-success">Jugar de Nuevo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let currentBalance = 2000;
+        let currentDay = 1;
+        let currentSavings = 0;
+        let monthlyIncome = 2000;
+        let fixedExpenses = {
+            rent: 600,
+            food: 200,
+            transport: 100,
+            entertainment: 50,
+            savings: 100
+        };
+
+        // Eventos del juego
+        const events = [
+            {
+                title: "Reparación de Electrodoméstico",
+                description: "Tu refrigerador se ha averiado. Necesitas repararlo para mantener tus alimentos.",
+                options: [
+                    { text: "Pagar reparación profesional ($120)", cost: 120, savingImpact: 0, happiness: 0 },
+                    { text: "Intentar repararlo tú mismo ($40 en herramientas)", cost: 40, savingImpact: 0, happiness: -5, risk: 0.5, failCost: 140 }
+                ]
+            },
+            {
+                title: "Cumpleaños de un Amigo",
+                description: "Es el cumpleaños de un amigo cercano y te ha invitado a su celebración.",
+                options: [
+                    { text: "Comprar un regalo ($50) y asistir", cost: 50, savingImpact: 0, happiness: 10 },
+                    { text: "Asistir sin regalo ($15 de transporte)", cost: 15, savingImpact: 0, happiness: 0 }
+                ]
+            },
+            {
+                title: "Oferta de Inversión",
+                description: "Un amigo te ha hablado de una inversión a corto plazo.",
+                options: [
+                    { text: "Invertir $100", cost: 100, savingImpact: 0, happiness: 0, risk: 0.6, reward: 180 },
+                    { text: "No invertir", cost: 0, savingImpact: 0, happiness: 0 }
+                ]
+            },
+            {
+                title: "Problema de Salud",
+                description: "Has pescado un resfriado y necesitas medicamentos.",
+                options: [
+                    { text: "Comprar medicamentos de marca ($35)", cost: 35, savingImpact: 0, happiness: 5 },
+                    { text: "Comprar medicamentos genéricos ($15)", cost: 15, savingImpact: 0, happiness: 0 }
+                ]
+            },
+            {
+                title: "Invitación a Cenar",
+                description: "Unos amigos te han invitado a cenar a un restaurante.",
+                options: [
+                    { text: "Aceptar la invitación ($40)", cost: 40, savingImpact: 0, happiness: 15 },
+                    { text: "Sugerir una reunión en casa ($20 para bebidas/snacks)", cost: 20, savingImpact: 0, happiness: 10 }
+                ]
+            },
+            {
+                title: "Factura Inesperada",
+                description: "Has recibido una factura de servicios más alta de lo normal.",
+                options: [
+                    { text: "Pagar la factura completa ($70)", cost: 70, savingImpact: 0, happiness: 0 },
+                    { text: "Pagar lo mínimo y el resto el mes siguiente ($40)", cost: 40, savingImpact: 0, happiness: -5, debt: 30 }
+                ]
+            },
+            {
+                title: "Descuento en Supermercado",
+                description: "Hay una gran oferta en productos básicos en el supermercado local.",
+                options: [
+                    { text: "Comprar en cantidad y ahorrar a largo plazo ($80)", cost: 80, savingImpact: 0, happiness: 5, futureSaving: 40 },
+                    { text: "Comprar solo lo necesario ahora ($30)", cost: 30, savingImpact: 0, happiness: 0 }
+                ]
+            },
+            {
+                title: "Regalo Inesperado",
+                description: "Un familiar te ha enviado un regalo en efectivo.",
+                options: [
+                    { text: "Guardar todo en ahorros", cost: -100, savingImpact: 100, happiness: 5 },
+                    { text: "Gastar en algo que deseabas", cost: -50, savingImpact: 0, happiness: 15 }
+                ]
+            },
+            {
+                title: "Oportunidad de Horas Extra",
+                description: "Te han ofrecido hacer horas extra en el trabajo este fin de semana.",
+                options: [
+                    { text: "Aceptar las horas extra", cost: -150, savingImpact: 0, happiness: -10 },
+                    { text: "Rechazar y disfrutar del fin de semana", cost: 0, savingImpact: 0, happiness: 15 }
+                ]
+            },
+            {
+                title: "Avería del Coche",
+                description: "Tu coche necesita una reparación urgente.",
+                options: [
+                    { text: "Repararlo inmediatamente ($200)", cost: 200, savingImpact: 0, happiness: 0 },
+                    { text: "Usar transporte público por ahora ($60 adicionales)", cost: 60, savingImpact: 0, happiness: -15 }
+                ]
+            }
+        ];
+
+        // Elementos del DOM
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const fixedExpensesScreen = document.getElementById('fixed-expenses-screen');
+        const eventScreen = document.getElementById('event-screen');
+        const gameOverScreen = document.getElementById('game-over');
+        const successMessage = document.getElementById('success-message');
+        const startGameButton = document.getElementById('start-game');
+        const confirmExpensesButton = document.getElementById('confirm-expenses');
+        const nextDayButton = document.getElementById('next-day');
+        const restartGameButton = document.getElementById('restart-game');
+        const restartSuccessButton = document.getElementById('restart-success');
+        const option1Button = document.getElementById('option1');
+        const option2Button = document.getElementById('option2');
+
+        // Actualizar elementos de la UI
+        function updateUI() {
+            document.getElementById('current-balance').textContent = '$' + currentBalance;
+            document.getElementById('current-day').textContent = currentDay + '/30';
+            document.getElementById('current-savings').textContent = '$' + currentSavings;
+            
+            // Actualizar barra de progreso de ahorro
+            const progressPercentage = Math.min((currentSavings / 300) * 100, 100);
+            const progressBar = document.getElementById('savings-progress');
+            progressBar.style.width = progressPercentage + '%';
+            progressBar.textContent = Math.round(progressPercentage) + '%';
+        }
+
+        function calculateTotalExpenses() {
+            const rent = parseInt(document.getElementById('rent-expense').value);
+            const food = parseInt(document.getElementById('food-expense').value);
+            const transport = parseInt(document.getElementById('transport-expense').value);
+            const entertainment = parseInt(document.getElementById('entertainment-expense').value);
+            const savings = parseInt(document.getElementById('savings-expense').value);
+            
+            fixedExpenses = {
+                rent,
+                food,
+                transport,
+                entertainment,
+                savings
+            };
+            
+            const total = rent + food + transport + entertainment + savings;
+            document.getElementById('total-expenses').textContent = '$' + total;
+            document.getElementById('remaining-balance').textContent = '$' + (currentBalance - total);
+            
+            // Habilitar/deshabilitar botón de confirmación
+            confirmExpensesButton.disabled = total > currentBalance;
+        }
+
+        // Iniciar el juego
+        startGameButton.addEventListener('click', function() {
+            startScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            updateUI();
+            
+            // Configurar eventos para los selectores de gastos
+            document.getElementById('rent-expense').addEventListener('change', calculateTotalExpenses);
+            document.getElementById('food-expense').addEventListener('change', calculateTotalExpenses);
+            document.getElementById('transport-expense').addEventListener('change', calculateTotalExpenses);
+            document.getElementById('entertainment-expense').addEventListener('change', calculateTotalExpenses);
+            document.getElementById('savings-expense').addEventListener('change', calculateTotalExpenses);
+            
+            calculateTotalExpenses();
+        });
+
+        // Confirmar gastos fijos
+        confirmExpensesButton.addEventListener('click', function() {
+            // Deducir gastos fijos y añadir al ahorro
+            const totalExpenses = fixedExpenses.rent + fixedExpenses.food + fixedExpenses.transport + fixedExpenses.entertainment;
+            currentBalance -= totalExpenses;
+            currentSavings += fixedExpenses.savings;
+            currentBalance -= fixedExpenses.savings;
+            
+            // Mostrar pantalla de eventos
+            fixedExpensesScreen.classList.add('hidden');
+            eventScreen.classList.remove('hidden');
+            
+            // Generar el primer evento
+            generateEvent();
+            
+            updateUI();
+        });
+
+        // Generar un evento aleatorio
+        function generateEvent() {
+            if (currentDay > 30) {
+                endGame(true);
+                return;
+            }
+            
+            // En días específicos, generar eventos fijos (como día de pago)
+            if (currentDay === 15) {
+                showPaydayEvent();
+                return;
+            }
+            
+            // Seleccionar un evento aleatorio
+            const eventIndex = Math.floor(Math.random() * events.length);
+            const event = events[eventIndex];
+            
+            document.getElementById('event-title').textContent = `Día ${currentDay}: ${event.title}`;
+            document.getElementById('event-description').textContent = event.description;
+            
+            // Configurar opciones
+            option1Button.textContent = event.options[0].text;
+            option2Button.textContent = event.options[1].text;
+            
+            // Limpiar eventos anteriores
+            option1Button.onclick = null;
+            option2Button.onclick = null;
+            
+            // Asignar nuevos eventos
+            option1Button.onclick = function() {
+                handleOptionSelected(event.options[0]);
+            };
+            
+            option2Button.onclick = function() {
+                handleOptionSelected(event.options[1]);
+            };
+            
+            document.getElementById('event-options').classList.remove('hidden');
+            nextDayButton.classList.add('hidden');
+        }
+
+        // Evento de día de pago
+        function showPaydayEvent() {
+            document.getElementById('event-title').textContent = `Día ${currentDay}: ¡Día de Pago!`;
+            document.getElementById('event-description').textContent = `Has recibido tu salario quincenal de $${monthlyIncome/2}.`;
+            
+            document.getElementById('event-options').classList.add('hidden');
+            nextDayButton.classList.remove('hidden');
+            
+            // Añadir el salario
+            currentBalance += monthlyIncome/2;
+            updateUI();
+        }
+
+        // Manejar selección de opción
+        function handleOptionSelected(option) {
+            let resultMessage = "";
+            
+            // Procesar la opción
+            if (option.risk && Math.random() > option.risk) {
+                // Éxito en evento de riesgo
+                if (option.reward) {
+                    currentBalance += option.reward - option.cost;
+                    resultMessage = `¡Buena decisión! La inversión fue exitosa y ganaste $${option.reward - option.cost}.`;
+                } else {
+                    currentBalance -= option.cost;
+                    resultMessage = "Has tenido éxito en tu intento y has ahorrado dinero.";
+                }
+            } else if (option.risk) {
+                // Fracaso en evento de riesgo
+                currentBalance -= option.failCost || option.cost;
+                resultMessage = `Lamentablemente, tu intento no fue exitoso y tuviste que pagar $${option.failCost || option.cost}.`;
+            } else {
+                // Evento normal sin riesgo
+                currentBalance -= option.cost;
+                if (option.cost < 0) {
+                    resultMessage = `Has ganado $${-option.cost}.`;
+                } else if (option.cost > 0) {
+                    resultMessage = `Has gastado $${option.cost}.`;
+                }
+            }
+            
+            // Aplicar impacto en ahorro
+            currentSavings += option.savingImpact;
+            
+            // Aplicar ahorro futuro si existe
+            if (option.futureSaving && currentDay < 25) {
+                setTimeout(() => {
+                    currentBalance += option.futureSaving;
+                    updateUI();
+                    alert(`¡Tu compra anticipada te ha ahorrado $${option.futureSaving}!`);
+                }, (5 * 1000)); // Simular el beneficio futuro después de unos días
+            }
+            
+            // Aplicar deuda si existe
+            if (option.debt) {
+                setTimeout(() => {
+                    currentBalance -= option.debt;
+                    updateUI();
+                    alert(`Has tenido que pagar el resto de tu deuda: $${option.debt}.`);
+                    
+                    // Verificar si el jugador sigue con saldo positivo
+                    if (currentBalance < 0) {
+                        endGame(false);
+                    }
+                }, (10 * 1000)); // Simular la deuda después de unos días
+            }
+            
+            // Actualizar UI
+            document.getElementById('event-description').textContent = resultMessage;
+            document.getElementById('event-options').classList.add('hidden');
+            nextDayButton.classList.remove('hidden');
+            updateUI();
+            
+            // Verificar si el jugador se quedó sin dinero
+            if (currentBalance < 0) {
+                endGame(false);
+            }
+        }
+
+        // Avanzar al siguiente día
+        nextDayButton.addEventListener('click', function() {
+            currentDay++;
+            updateUI();
+            generateEvent();
+        });
+
+        // Finalizar el juego
+        function endGame(success) {
+            eventScreen.classList.add('hidden');
+            
+            if (success) {
+                successMessage.classList.remove('hidden');
+                document.getElementById('success-details').textContent = `Has completado el mes con éxito. Terminaste con un saldo de $${currentBalance} y ahorraste $${currentSavings}.`;
+                
+                if (currentSavings >= 300) {
+                    document.getElementById('goal-achieved').classList.remove('hidden');
+                    document.getElementById('goal-not-achieved').classList.add('hidden');
+                } else {
+                    document.getElementById('goal-achieved').classList.add('hidden');
+                    document.getElementById('goal-not-achieved').classList.remove('hidden');
+                }
+            } else {
+                gameOverScreen.classList.remove('hidden');
+            }
+        }
+
+        // Reiniciar el juego
+        function restartGame() {
+            currentBalance = 2000;
+            currentDay = 1;
+            currentSavings = 0;
+            
+            // Reiniciar pantallas
+            gameOverScreen.classList.add('hidden');
+            successMessage.classList.add('hidden');
+            eventScreen.classList.add('hidden');
+            fixedExpensesScreen.classList.remove('hidden');
+            
+            // Reiniciar selectores
+            document.getElementById('rent-expense').value = 600;
+            document.getElementById('food-expense').value = 200;
+            document.getElementById('transport-expense').value = 100;
+            document.getElementById('entertainment-expense').value = 50;
+            document.getElementById('savings-expense').value = 100;
+            
+            calculateTotalExpenses();
+            updateUI();
+        }
+
+        restartGameButton.addEventListener('click', restartGame);
+        restartSuccessButton.addEventListener('click', restartGame);
+    </script>
+</body>
+</html>
